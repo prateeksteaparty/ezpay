@@ -29,21 +29,22 @@ const updateBody = zod.object({
 
 
 router.post('/signup', async (req, res ) =>{
+    console.log(req.body)
     const body = req.body; //get body of the inputs
     const {success} = signupSchema.safeParse(req.body); //safeParse the body with zod validation
     if(!success){  //if success is not true i mean req.body will give back a json object hence we put success in {} and 
         //if !success means false then it returns msg that email is already taken with status code 411
-        return res.status(411).json({
+        return res.status(409).json({
             message: "Email already taken / Incorrect inputs"
         })
     }
 
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         username: body.username  //checks if there is a existing user with the given name
     })
 
     if(existingUser) { //if existing user is true then it says email already taken
-        return res.status(411).json({
+        return res.status(409).json({
             message: "Email already taken / Incorrect inputs"
         })
     }
@@ -61,13 +62,11 @@ router.post('/signup', async (req, res ) =>{
         userId,
         balance: 1 + Math.random()*10000
     })
-
+    console.log("JWT_SECRET in config:", JWT_SECRET); // This is good for debugging
     const token = jwt.sign({
-        userId: user._id  // the user created is stored in user as a object a id is 
-        // created of that object
-        // that id is called as user id and its given for jwt to create a jwt token
-    }, JWT_SECRET)
-
+        userId: user._id
+    }, JWT_SECRET);
+    
     res.json({
         message: "User created successfully",
         token: token   // creates user and returns token related to corresponding id and pass
@@ -75,7 +74,7 @@ router.post('/signup', async (req, res ) =>{
 })
 
 
-router.post('/signin', (req, res) =>{
+router.post('/signin', async(req, res) =>{
     const {success} = signinSchema.safeParse(req.body);
     if(!success){
         return res.status(411).json({
@@ -83,7 +82,7 @@ router.post('/signin', (req, res) =>{
         })
     } // checks if it passes middleware checks i.e zod or input validation checks
 
-    const user = User.findOne({
+    const user = await User.findOne({
         username: req.body.username,
         password: req.body.password //finds user 
     })
@@ -149,52 +148,6 @@ router.get('/bulk', async (req, res) =>{
     })
 })
 
-// finds account and returns balance
-router.get('/balance', authMiddleware, async (req, res)=>{
-    const account = Account.findOne({
-        userId: req.userId //finds account
-    });
-    res.json({
-        balance: account.balance //gives back balance
-    })
-});
-
-router.post('/transfer', authMiddleware, async(req, res)=>{
-    const session = mongoose.startSession(); //starts a session
-
-    session.startTransaction(); //starts a transaction inside a session 
-
-    const { amount, to } = req.body; // gets input as amount and to whom u wanna send from req.body
-
-    const account = await Account.findOne({userId: req.userId}).session(session); //finds the account of the user who wants 
-    // to send money
-
-    if(!account || account.balance < amount){ // if account doesnt exist or balance is low give insufficient balance
-        await session.abortTransaction();// abort transaction if account doesnt exist
-        return res.status(400).json({
-            message: "Insufficient balance"
-        })
-    }
-
-    const toAccount = await Account.findOne({userId: to}).session(session);
-     // if account exists then find the account of whom u wanna send money to
-    if(!toAccount){
-        await session.abortTransaction(); // abort transaction if account doesnt exist
-        return res.status(400).json({
-            message: "Invalid account" //if account doesnt exist give back invalid account
-        })
-    } 
-    // P.S: Checked with a function when two transaction are sent together they conflict
-
-    await Account.updateOne({userId: req.userId}, {$inc : {balance: -amount}}).session(session);
-    await Account.updateOne({userId: to}, {$inc: {balance: amount}}).session(session);
-   // here the transaction is done 
-    await session.commitTransaction(); // commit transaction
-    res.json({
-        message: "Transfer Successfull" // give back message of transfer successful
-    });
-
-})
 
 
 module.exports = router;
