@@ -8,16 +8,17 @@ const router = express.Router();
 
 // finds account and returns balance
 router.get('/balance', authMiddleware, async (req, res)=>{
-    const account = Account.findOne({
+    const account = await Account.findOne({
         userId: req.userId //finds account
     });
+
     res.json({
         balance: account.balance //gives back balance
     })
 });
 
 router.post('/transfer', authMiddleware, async(req, res)=>{
-    const session = mongoose.startSession(); //starts a session
+    const session = await mongoose.startSession(); //starts a session
 
     session.startTransaction(); //starts a transaction inside a session 
 

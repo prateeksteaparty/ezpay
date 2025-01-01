@@ -20,13 +20,13 @@ export const Signup = () => {
       <div className="rounded-lg bg-white w-80 text-center p-2 h-max px-4">
         <Heading label={"Sign up"} />
         <SubHeading label={"Enter your infromation to create an account"} />
-        <InputBox onChange={e => {
+        <InputBox onChange={(e) => {
           setFirstName(e.target.value);
         }} placeholder="Pratik" label={"First Name"} />
         <InputBox onChange={(e) => {
           setLastName(e.target.value);
         }} placeholder="Shinde" label={"Last Name"} />
-        <InputBox onChange={e => {
+        <InputBox onChange={(e) => {
           setUsername(e.target.value);
         }} placeholder="pratik@gmail.com" label={"Email"} />
         <InputBox onChange={(e) => {
@@ -34,14 +34,19 @@ export const Signup = () => {
         }} placeholder="123456" label={"Password"} />
         <div className="pt-4">
           <Button onClick={async () => {
+           try {
             const response = await axios.post("http://localhost:3000/api/v1/user/signup", {
               username,
               firstName,
               lastName,
-              password
+              password,
             });
-            localStorage.setItem("token", response.data.token)
-            navigate("/dashboard")
+            localStorage.setItem("token", response.data.token);
+            navigate("/dashboard");
+          } catch (error) {
+            console.error("Signup error:", error.response?.data || error.message);
+            alert("Signup failed. Please try again.");
+          }
           }} label={"Sign up"} />
         </div>
         <BottomWarning label={"Already have an account?"} buttonText={"Sign in"} to={"/signin"} />
