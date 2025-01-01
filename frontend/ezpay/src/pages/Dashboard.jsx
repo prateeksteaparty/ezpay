@@ -3,6 +3,7 @@ import { Appbar } from "../components/Appbar";
 import { Balance } from "../components/Balance";
 import { Users } from "../components/Users";
 import axios from "axios";
+import backendUrl from "../../config";
 
 export const Dashboard = () => {
     const [balance, setBalance] = useState(null); // State to hold the balance
@@ -12,7 +13,7 @@ export const Dashboard = () => {
     useEffect(() => {
         // Fetch balance from the backend
         axios
-            .get("http://localhost:3000/api/v1/account/balance", {
+            .get(`${backendUrl}/api/v1/account/balance`, {  // Use backticks here
                 headers: {
                     Authorization: "Bearer " + localStorage.getItem("token"),
                 },
@@ -39,7 +40,7 @@ export const Dashboard = () => {
                 ) : error ? (
                     <div className="text-red-600">{error}</div> 
                 ) : (
-                    <Balance value={balance || "0"} /> 
+                    <Balance value={balance || "0"} />  
                 )}
                 <Users />
             </div>
