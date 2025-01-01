@@ -9,12 +9,10 @@ export const LandingPage = () => {
         <div className="flex items-center justify-center bg-gray-200">
           <img
             src="./public/output.jpg"
-            alt="Luffy"
             className="object-cover w-full h-full md:h-auto"
           />
         </div>
 
-        {/* Content Section */}
         <div className="flex flex-col items-center justify-center bg-white p-8">
           <h1 className="text-5xl font-bold mb-8 text-gray-800 text-center">
             Welcome to EzPay
